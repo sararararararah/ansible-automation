@@ -1,0 +1,77 @@
+---
+- name: Créer deux VMs sur ESXi
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - community.vmware
+
+  vars:
+    esxi_hostname: "192.168.99.128"
+    esxi_username: "root"
+    esxi_password: "Connect*123"
+    datastore: "datastore1"
+    network: "VM Network"
+    gateway: "192.168.99.254"
+    disk_size: 20
+    ram: 2048
+    cpu: 2
+
+  tasks:
+
+    - name: Créer VM Windows 11
+      vmware_guest:
+        hostname: "{{ esxi_hostname }}"
+        username: "{{ esxi_username }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "Win11-VM"
+        folder: "/"
+        guest_id: "windows9_64Guest"
+        datastore: "{{ datastore }}"
+        disk:
+          - size_gb: "{{ disk_size }}"
+            type: thin
+            datastore: "{{ datastore }}"
+        hardware:
+          memory_mb: "{{ ram }}"
+          num_cpus: "{{ cpu }}"
+          scsi: paravirtual
+        networks:
+          - name: "{{ network }}"
+            ip: "192.168.99.51"
+            netmask: "255.255.255.0"
+            gateway: "{{ gateway }}"
+            type: static
+        cdrom:
+          type: iso
+          iso_path: "[{{ datastore }}] Win11_24H2_French_x64.iso"
+        state: poweredon
+
+    - name: Créer VM Ubuntu 22 Desktop
+      vmware_guest:
+        hostname: "{{ esxi_hostname }}"
+        username: "{{ esxi_username }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "Ubuntu22-VM"
+        folder: "/"
+        guest_id: "ubuntu64Guest"
+        datastore: "{{ datastore }}"
+        disk:
+          - size_gb: "{{ disk_size }}"
+            type: thin
+            datastore: "{{ datastore }}"
+        hardware:
+          memory_mb: "{{ ram }}"
+          num_cpus: "{{ cpu }}"
+          scsi: paravirtual
+        networks:
+          - name: "{{ network }}"
+            ip: "192.168.99.52"
+            netmask: "255.255.255.0"
+            gateway: "{{ gateway }}"
+            type: static
+        cdrom:
+          type: iso
+          iso_path: "[{{ datastore }}] ubuntu22.iso"
+        state: poweredon
